@@ -1,0 +1,425 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans, system-ui); background: var(--color-background-tertiary); color: var(--color-text-primary); min-height: 100vh; }
+  input, textarea, select { font-family: inherit; font-size: 14px; background: var(--color-background-primary); color: var(--color-text-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 8px 12px; width: 100%; outline: none; }
+  input:focus, textarea:focus, select:focus { border-color: var(--color-border-primary); box-shadow: 0 0 0 2px rgba(59,130,246,0.12); }
+  button { font-family: inherit; cursor: pointer; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 14px; padding: 8px 16px; transition: background 0.15s; }
+  button:hover { background: var(--color-background-secondary); }
+  .btn-primary { background: #185FA5; color: #fff; border-color: #185FA5; }
+  .btn-primary:hover { background: #0C447C; }
+  .btn-danger { background: var(--color-background-danger); color: var(--color-text-danger); border-color: var(--color-border-danger, #f09595); }
+  .btn-success { background: var(--color-background-success); color: var(--color-text-success); border-color: var(--color-border-success, #97c459); }
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 100px; }
+  .badge-pending { background: #FAEEDA; color: #854F0B; }
+  .badge-approved { background: #EAF3DE; color: #3B6D11; }
+  .badge-rejected { background: #FCEBEB; color: #A32D2D; }
+  .badge-submitted { background: #E6F1FB; color: #185FA5; }
+  .badge-pending-sub { background: #FAEEDA; color: #854F0B; }
+  .badge-missed { background: #FCEBEB; color: #A32D2D; }
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+  .page { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+  .topbar { background: var(--color-background-primary); border-bottom: 0.5px solid var(--color-border-tertiary); padding: 0 1.5rem; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+  .topbar-title { font-size: 16px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+  .topbar-right { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-text-secondary); }
+  .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .tab { padding: 8px 16px; font-size: 14px; border: none; background: none; color: var(--color-text-secondary); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s; }
+  .tab:hover { color: var(--color-text-primary); background: none; }
+  .tab.active { color: #185FA5; border-bottom-color: #185FA5; font-weight: 500; }
+  .form-group { margin-bottom: 1rem; }
+  .form-label { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 4px; display: block; }
+  .section-title { font-size: 15px; font-weight: 500; margin-bottom: 1rem; }
+  .empty { text-align: center; color: var(--color-text-secondary); font-size: 14px; padding: 2rem 0; }
+  .list-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 0.5px solid var(--color-border-tertiary); gap: 12px; }
+  .list-item:last-child { border-bottom: none; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: #E6F1FB; color: #185FA5; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+  .meta { font-size: 12px; color: var(--color-text-secondary); }
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 1.5rem; }
+  .stat-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem; }
+  .stat-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .stat-value { font-size: 22px; font-weight: 500; }
+  .alert { padding: 10px 14px; border-radius: var(--border-radius-md); font-size: 13px; margin-bottom: 1rem; }
+  .alert-error { background: var(--color-background-danger); color: var(--color-text-danger); }
+  .alert-success { background: var(--color-background-success); color: var(--color-text-success); }
+  .divider { height: 1px; background: var(--color-border-tertiary); margin: 1.25rem 0; }
+  .assign-card { margin-bottom: 1rem; }
+  .assign-title { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+  .assign-meta { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 10px; }
+  .progress-bar { height: 4px; background: var(--color-background-secondary); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+  .progress-fill { height: 100%; background: #185FA5; border-radius: 4px; transition: width 0.4s; }
+  select { appearance: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+const { useState, useEffect } = React;
+const e = React.createElement;
+
+const ADMIN_CREDS = { email: 'admin@assignhub.com', password: 'admin123' };
+
+const initialStudents = [
+  { id: 1, name: 'Arun Kumar', email: 'arun@mail.com', rollNo: 'CS001', password: 'pass123', status: 'approved' },
+  { id: 2, name: 'Priya Nair', email: 'priya@mail.com', rollNo: 'CS002', password: 'pass123', status: 'pending' },
+];
+
+const initialAssignments = [
+  { id: 1, title: 'Data Structures Lab - Linked Lists', description: 'Implement singly and doubly linked list operations in C.', deadline: '2026-06-30', format: 'text', createdAt: '2026-06-20' },
+  { id: 2, title: 'DBMS Assignment - ER Diagrams', description: 'Design an ER diagram for a hospital management system.', deadline: '2026-07-05', format: 'text', createdAt: '2026-06-22' },
+];
+
+const initialSubmissions = [
+  { id: 1, studentId: 1, assignmentId: 1, content: 'Implemented using struct Node with head pointer.', submittedAt: '2026-06-24' }
+];
+
+function initials(name) {
+  return name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
+}
+
+function isOverdue(deadline) {
+  return new Date(deadline) < new Date();
+}
+
+function App() {
+  const [students, setStudents] = useState(initialStudents);
+  const [assignments, setAssignments] = useState(initialAssignments);
+  const [submissions, setSubmissions] = useState(initialSubmissions);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [view, setView] = useState('login');
+
+  const login = (user) => { setCurrentUser(user); setView(user.role === 'admin' ? 'admin' : 'student'); };
+  const logout = () => { setCurrentUser(null); setView('login'); };
+
+  if (!currentUser) return e(AuthScreen, { students, setStudents, onLogin: login });
+  if (currentUser.role === 'admin') return e(AdminApp, { students, setStudents, assignments, setAssignments, submissions, setSubmissions, onLogout: logout });
+  return e(StudentApp, { student: currentUser, assignments, submissions, setSubmissions, onLogout: logout, students, setStudents });
+}
+
+function AuthScreen({ students, setStudents, onLogin }) {
+  const [mode, setMode] = useState('login');
+  const [role, setRole] = useState('student');
+  const [form, setForm] = useState({ name:'', email:'', rollNo:'', password:'' });
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const set = (k, v) => setForm(f => ({...f, [k]: v}));
+
+  const handleLogin = () => {
+    setError(''); setSuccess('');
+    if (role === 'admin') {
+      if (form.email === ADMIN_CREDS.email && form.password === ADMIN_CREDS.password) {
+        onLogin({ role: 'admin', name: 'Admin' });
+      } else setError('Invalid admin credentials.');
+    } else {
+      const s = students.find(s => s.email === form.email && s.password === form.password);
+      if (!s) return setError('Student not found.');
+      if (s.status === 'pending') return setError('Your account is pending admin approval.');
+      if (s.status === 'rejected') return setError('Your registration was rejected.');
+      onLogin({ ...s, role: 'student' });
+    }
+  };
+
+  const handleRegister = () => {
+    setError(''); setSuccess('');
+    if (!form.name || !form.email || !form.rollNo || !form.password) return setError('All fields required.');
+    if (students.find(s => s.email === form.email)) return setError('Email already registered.');
+    const newStudent = { id: Date.now(), name: form.name, email: form.email, rollNo: form.rollNo, password: form.password, status: 'pending' };
+    setStudents(prev => [...prev, newStudent]);
+    setSuccess('Registration submitted! Wait for admin approval.');
+    setForm({ name:'', email:'', rollNo:'', password:'' });
+    setMode('login');
+  };
+
+  return e('div', { style: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-background-tertiary)', padding: '1rem' } },
+    e('div', { className: 'card', style: { width: '100%', maxWidth: 380 } },
+      e('div', { style: { textAlign: 'center', marginBottom: '1.5rem' } },
+        e('div', { style: { fontSize: 28, marginBottom: 4 } }, '📋'),
+        e('div', { style: { fontSize: 18, fontWeight: 500 } }, 'AssignHub'),
+        e('div', { style: { fontSize: 13, color: 'var(--color-text-secondary)' } }, 'Assignment management platform')
+      ),
+      mode === 'login' ? [
+        e('div', { key: 'tabs', style: { display: 'flex', gap: 8, marginBottom: '1.25rem' } },
+          e('button', { onClick: () => setRole('student'), style: { flex: 1, background: role==='student'?'#185FA5':'var(--color-background-secondary)', color: role==='student'?'#fff':'var(--color-text-primary)', border: 'none', padding: '8px', borderRadius: 'var(--border-radius-md)', fontWeight: role==='student'?500:400 } }, 'Student'),
+          e('button', { onClick: () => setRole('admin'), style: { flex: 1, background: role==='admin'?'#185FA5':'var(--color-background-secondary)', color: role==='admin'?'#fff':'var(--color-text-primary)', border: 'none', padding: '8px', borderRadius: 'var(--border-radius-md)', fontWeight: role==='admin'?500:400 } }, 'Admin')
+        ),
+        error && e('div', { key: 'err', className: 'alert alert-error' }, error),
+        success && e('div', { key: 'suc', className: 'alert alert-success' }, success),
+        e('div', { key: 'email', className: 'form-group' }, e('label', { className: 'form-label' }, 'Email'), e('input', { type: 'email', placeholder: role==='admin'?'admin@assignhub.com':'student@mail.com', value: form.email, onChange: ev => set('email', ev.target.value) })),
+        e('div', { key: 'pass', className: 'form-group' }, e('label', { className: 'form-label' }, 'Password'), e('input', { type: 'password', placeholder: role==='admin'?'admin123':'pass123', value: form.password, onChange: ev => set('password', ev.target.value) })),
+        e('button', { key: 'btn', className: 'btn-primary', style: { width: '100%', marginTop: 4 }, onClick: handleLogin }, 'Sign in'),
+        role === 'student' && e('p', { key: 'reg', style: { textAlign: 'center', fontSize: 13, marginTop: 16, color: 'var(--color-text-secondary)' } },
+          'No account? ', e('span', { style: { color: '#185FA5', cursor: 'pointer' }, onClick: () => { setMode('register'); setError(''); setSuccess(''); } }, 'Register here')
+        )
+      ] : [
+        e('div', { key: 'h', style: { fontSize: 15, fontWeight: 500, marginBottom: '1rem' } }, 'Student registration'),
+        error && e('div', { key: 'err', className: 'alert alert-error' }, error),
+        e('div', { key: 'n', className: 'form-group' }, e('label', { className: 'form-label' }, 'Full name'), e('input', { value: form.name, onChange: ev => set('name', ev.target.value), placeholder: 'Arun Kumar' })),
+        e('div', { key: 'r', className: 'form-group' }, e('label', { className: 'form-label' }, 'Roll number'), e('input', { value: form.rollNo, onChange: ev => set('rollNo', ev.target.value), placeholder: 'CS001' })),
+        e('div', { key: 'em', className: 'form-group' }, e('label', { className: 'form-label' }, 'Email'), e('input', { type: 'email', value: form.email, onChange: ev => set('email', ev.target.value), placeholder: 'you@mail.com' })),
+        e('div', { key: 'pw', className: 'form-group' }, e('label', { className: 'form-label' }, 'Password'), e('input', { type: 'password', value: form.password, onChange: ev => set('password', ev.target.value) })),
+        e('button', { key: 'rb', className: 'btn-primary', style: { width: '100%', marginTop: 4 }, onClick: handleRegister }, 'Submit registration'),
+        e('p', { key: 'back', style: { textAlign: 'center', fontSize: 13, marginTop: 16, color: 'var(--color-text-secondary)' } },
+          e('span', { style: { color: '#185FA5', cursor: 'pointer' }, onClick: () => { setMode('login'); setError(''); } }, '← Back to login')
+        )
+      ]
+    )
+  );
+}
+
+function AdminApp({ students, setStudents, assignments, setAssignments, submissions, setSubmissions, onLogout }) {
+  const [tab, setTab] = useState('overview');
+
+  const pending = students.filter(s => s.status === 'pending');
+  const approved = students.filter(s => s.status === 'approved');
+
+  const updateStatus = (id, status) => setStudents(prev => prev.map(s => s.id === id ? {...s, status} : s));
+
+  return e('div', {},
+    e('div', { className: 'topbar' },
+      e('div', { className: 'topbar-title' }, '📋 ', 'AssignHub'),
+      e('div', { className: 'topbar-right' },
+        e('span', {}, 'Admin'),
+        e('button', { onClick: onLogout, style: { fontSize: 13, padding: '4px 10px' } }, 'Sign out')
+      )
+    ),
+    e('div', { className: 'page' },
+      e('div', { className: 'tabs' },
+        ['overview', 'students', 'assignments', 'submissions'].map(t =>
+          e('button', { key: t, className: `tab ${tab===t?'active':''}`, onClick: () => setTab(t) },
+            t.charAt(0).toUpperCase()+t.slice(1),
+            t === 'students' && pending.length > 0 ? ` (${pending.length})` : ''
+          )
+        )
+      ),
+      tab === 'overview' && e(AdminOverview, { students, assignments, submissions }),
+      tab === 'students' && e(AdminStudents, { students, updateStatus }),
+      tab === 'assignments' && e(AdminAssignments, { assignments, setAssignments, students }),
+      tab === 'submissions' && e(AdminSubmissions, { submissions, students, assignments })
+    )
+  );
+}
+
+function AdminOverview({ students, assignments, submissions }) {
+  const approved = students.filter(s => s.status === 'approved').length;
+  const pending = students.filter(s => s.status === 'pending').length;
+  const subCount = submissions.length;
+  const totalPossible = students.filter(s => s.status === 'approved').length * assignments.length;
+  const pct = totalPossible > 0 ? Math.round((subCount / totalPossible) * 100) : 0;
+
+  return e('div', {},
+    e('div', { className: 'stat-grid' },
+      e('div', { className: 'stat-card' }, e('div', { className: 'stat-label' }, 'Approved students'), e('div', { className: 'stat-value' }, approved)),
+      e('div', { className: 'stat-card' }, e('div', { className: 'stat-label' }, 'Pending approvals'), e('div', { className: 'stat-value' }, pending)),
+      e('div', { className: 'stat-card' }, e('div', { className: 'stat-label' }, 'Total assignments'), e('div', { className: 'stat-value' }, assignments.length)),
+    ),
+    e('div', { className: 'card', style: { marginTop: 0 } },
+      e('div', { className: 'stat-label' }, 'Overall submission rate'),
+      e('div', { style: { fontSize: 20, fontWeight: 500, margin: '4px 0 8px' } }, pct + '%'),
+      e('div', { className: 'progress-bar' }, e('div', { className: 'progress-fill', style: { width: pct + '%' } })),
+      e('div', { className: 'meta', style: { marginTop: 6 } }, subCount + ' of ' + totalPossible + ' possible submissions received')
+    )
+  );
+}
+
+function AdminStudents({ students, updateStatus }) {
+  const pending = students.filter(s => s.status === 'pending');
+  const others = students.filter(s => s.status !== 'pending');
+
+  return e('div', {},
+    pending.length > 0 && e('div', { className: 'card', style: { marginBottom: '1rem' } },
+      e('div', { className: 'section-title' }, 'Pending approvals'),
+      pending.map(s => e('div', { key: s.id, className: 'list-item' },
+        e('div', { style: { display: 'flex', alignItems: 'center', gap: 10 } },
+          e('div', { className: 'avatar' }, initials(s.name)),
+          e('div', {},
+            e('div', { style: { fontSize: 14, fontWeight: 500 } }, s.name),
+            e('div', { className: 'meta' }, s.rollNo + ' · ' + s.email)
+          )
+        ),
+        e('div', { style: { display: 'flex', gap: 6 } },
+          e('button', { className: 'btn-success', style: { padding: '4px 12px', fontSize: 12 }, onClick: () => updateStatus(s.id, 'approved') }, 'Approve'),
+          e('button', { className: 'btn-danger', style: { padding: '4px 12px', fontSize: 12 }, onClick: () => updateStatus(s.id, 'rejected') }, 'Reject')
+        )
+      ))
+    ),
+    e('div', { className: 'card' },
+      e('div', { className: 'section-title' }, 'All students'),
+      students.length === 0 && e('div', { className: 'empty' }, 'No students registered yet.'),
+      others.map(s => e('div', { key: s.id, className: 'list-item' },
+        e('div', { style: { display: 'flex', alignItems: 'center', gap: 10 } },
+          e('div', { className: 'avatar' }, initials(s.name)),
+          e('div', {},
+            e('div', { style: { fontSize: 14, fontWeight: 500 } }, s.name),
+            e('div', { className: 'meta' }, s.rollNo + ' · ' + s.email)
+          )
+        ),
+        e('span', { className: `badge badge-${s.status}` }, s.status)
+      ))
+    )
+  );
+}
+
+function AdminAssignments({ assignments, setAssignments, students }) {
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ title:'', description:'', deadline:'' });
+  const [error, setError] = useState('');
+
+  const set = (k,v) => setForm(f => ({...f, [k]: v}));
+
+  const add = () => {
+    if (!form.title || !form.deadline) return setError('Title and deadline are required.');
+    setAssignments(prev => [...prev, { id: Date.now(), ...form, format: 'text', createdAt: new Date().toISOString().slice(0,10) }]);
+    setForm({ title:'', description:'', deadline:'' });
+    setError(''); setShowForm(false);
+  };
+
+  return e('div', {},
+    e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' } },
+      e('div', { className: 'section-title', style: { margin: 0 } }, 'Assignments'),
+      e('button', { className: 'btn-primary', style: { fontSize: 13 }, onClick: () => setShowForm(f => !f) }, showForm ? 'Cancel' : '+ New assignment')
+    ),
+    showForm && e('div', { className: 'card', style: { marginBottom: '1rem' } },
+      error && e('div', { className: 'alert alert-error' }, error),
+      e('div', { className: 'form-group' }, e('label', { className: 'form-label' }, 'Title'), e('input', { value: form.title, onChange: ev => set('title', ev.target.value), placeholder: 'e.g. DBMS Assignment 1' })),
+      e('div', { className: 'form-group' }, e('label', { className: 'form-label' }, 'Description'), e('textarea', { rows: 3, value: form.description, onChange: ev => set('description', ev.target.value), placeholder: 'Instructions, links, etc.' })),
+      e('div', { className: 'form-group' }, e('label', { className: 'form-label' }, 'Deadline'), e('input', { type: 'date', value: form.deadline, onChange: ev => set('deadline', ev.target.value) })),
+      e('button', { className: 'btn-primary', onClick: add }, 'Create assignment')
+    ),
+    assignments.length === 0 && e('div', { className: 'empty' }, 'No assignments yet.'),
+    assignments.map(a => e('div', { key: a.id, className: 'card assign-card' },
+      e('div', { className: 'assign-title' }, a.title),
+      e('div', { className: 'assign-meta' }, 'Deadline: ' + a.deadline + (isOverdue(a.deadline) ? ' · Overdue' : '')),
+      a.description && e('div', { style: { fontSize: 13, color: 'var(--color-text-secondary)' } }, a.description)
+    ))
+  );
+}
+
+function AdminSubmissions({ submissions, students, assignments }) {
+  const [filter, setFilter] = useState('all');
+
+  const rows = assignments.flatMap(a =>
+    students.filter(s => s.status === 'approved').map(s => {
+      const sub = submissions.find(x => x.studentId === s.id && x.assignmentId === a.id);
+      const status = sub ? 'submitted' : isOverdue(a.deadline) ? 'missed' : 'pending';
+      return { student: s, assignment: a, submission: sub, status };
+    })
+  ).filter(r => filter === 'all' || r.status === filter);
+
+  const counts = { submitted: rows.filter(r=>r.status==='submitted').length, pending: rows.filter(r=>r.status==='pending').length, missed: rows.filter(r=>r.status==='missed').length };
+
+  return e('div', {},
+    e('div', { style: { display: 'flex', gap: 8, marginBottom: '1rem' } },
+      ['all','submitted','pending','missed'].map(f =>
+        e('button', { key: f, onClick: () => setFilter(f), style: { fontSize: 12, padding: '4px 12px', background: filter===f?'#185FA5':'var(--color-background-secondary)', color: filter===f?'#fff':'var(--color-text-secondary)', border: 'none', borderRadius: 100 } }, f.charAt(0).toUpperCase()+f.slice(1))
+      )
+    ),
+    e('div', { className: 'card' },
+      rows.length === 0 && e('div', { className: 'empty' }, 'No records found.'),
+      rows.map((r, i) => e('div', { key: i, className: 'list-item' },
+        e('div', {},
+          e('div', { style: { fontSize: 14, fontWeight: 500 } }, r.student.name),
+          e('div', { className: 'meta' }, r.assignment.title),
+          r.submission && e('div', { className: 'meta', style: { marginTop: 2 } }, 'Submitted: ' + r.submission.submittedAt)
+        ),
+        e('span', { className: `badge badge-${r.status==='pending'?'pending-sub':r.status}` }, r.status)
+      ))
+    )
+  );
+}
+
+function StudentApp({ student, assignments, submissions, setSubmissions, onLogout }) {
+  const [tab, setTab] = useState('assignments');
+  const mySubmissions = submissions.filter(s => s.studentId === student.id);
+
+  return e('div', {},
+    e('div', { className: 'topbar' },
+      e('div', { className: 'topbar-title' }, '📋 ', 'AssignHub'),
+      e('div', { className: 'topbar-right' },
+        e('span', {}, student.name),
+        e('button', { onClick: onLogout, style: { fontSize: 13, padding: '4px 10px' } }, 'Sign out')
+      )
+    ),
+    e('div', { className: 'page' },
+      e('div', { className: 'tabs' },
+        ['assignments', 'my submissions'].map(t =>
+          e('button', { key: t, className: `tab ${tab===t?'active':''}`, onClick: () => setTab(t) }, t.charAt(0).toUpperCase()+t.slice(1))
+        )
+      ),
+      tab === 'assignments' && e(StudentAssignments, { student, assignments, submissions, setSubmissions }),
+      tab === 'my submissions' && e(StudentSubmissions, { mySubmissions, assignments })
+    )
+  );
+}
+
+function StudentAssignments({ student, assignments, submissions, setSubmissions }) {
+  const [active, setActive] = useState(null);
+  const [text, setText] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const submit = (assignmentId) => {
+    if (!text.trim()) return;
+    const existing = submissions.find(s => s.studentId === student.id && s.assignmentId === assignmentId);
+    if (existing) return;
+    setSubmissions(prev => [...prev, { id: Date.now(), studentId: student.id, assignmentId, content: text, submittedAt: new Date().toISOString().slice(0,10) }]);
+    setText(''); setActive(null); setSuccess('Submitted successfully!');
+    setTimeout(() => setSuccess(''), 3000);
+  };
+
+  if (assignments.length === 0) return e('div', { className: 'empty' }, 'No assignments posted yet.');
+
+  return e('div', {},
+    success && e('div', { className: 'alert alert-success' }, success),
+    assignments.map(a => {
+      const sub = submissions.find(s => s.studentId === student.id && s.assignmentId === a.id);
+      const over = isOverdue(a.deadline);
+      return e('div', { key: a.id, className: 'card assign-card' },
+        e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' } },
+          e('div', { className: 'assign-title' }, a.title),
+          sub ? e('span', { className: 'badge badge-submitted' }, 'Submitted') :
+          over ? e('span', { className: 'badge badge-missed' }, 'Missed') :
+          e('span', { className: 'badge badge-pending' }, 'Pending')
+        ),
+        e('div', { className: 'assign-meta' }, 'Due: ' + a.deadline),
+        a.description && e('div', { style: { fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 8 } }, a.description),
+        !sub && !over && e('div', {},
+          active === a.id ? e('div', {},
+            e('textarea', { rows: 3, style: { marginBottom: 8 }, placeholder: 'Type your submission here...', value: text, onChange: ev => setText(ev.target.value) }),
+            e('div', { style: { display: 'flex', gap: 8 } },
+              e('button', { className: 'btn-primary', style: { fontSize: 13 }, onClick: () => submit(a.id) }, 'Submit'),
+              e('button', { style: { fontSize: 13 }, onClick: () => { setActive(null); setText(''); } }, 'Cancel')
+            )
+          ) : e('button', { style: { fontSize: 13, marginTop: 4 }, onClick: () => setActive(a.id) }, 'Submit work')
+        ),
+        sub && e('div', { style: { fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 6, fontStyle: 'italic' } }, '"' + sub.content.slice(0,80) + (sub.content.length>80?'…':'') + '"')
+      );
+    })
+  );
+}
+
+function StudentSubmissions({ mySubmissions, assignments }) {
+  if (mySubmissions.length === 0) return e('div', { className: 'empty' }, 'You have not submitted any assignments yet.');
+  return e('div', { className: 'card' },
+    mySubmissions.map(s => {
+      const a = assignments.find(x => x.id === s.assignmentId);
+      return e('div', { key: s.id, className: 'list-item' },
+        e('div', {},
+          e('div', { style: { fontSize: 14, fontWeight: 500 } }, a ? a.title : 'Assignment'),
+          e('div', { className: 'meta' }, 'Submitted on ' + s.submittedAt),
+          e('div', { style: { fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2, fontStyle: 'italic' } }, '"' + s.content.slice(0,60) + (s.content.length>60?'…':'') + '"')
+        ),
+        e('span', { className: 'badge badge-submitted' }, 'Done')
+      );
+    })
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(e(App));
+</script>
+</body>
+</html>
