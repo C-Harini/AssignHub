@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import App from './App.jsx';
 import { AuthProvider } from './contexts/AuthContext.jsx';
 import './styles/global.css';
@@ -10,6 +11,17 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <AuthProvider>
         <App />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3500,
+            style: {
+              fontSize: 13,
+              borderRadius: 8,
+              border: '0.5px solid #e8e9ec',
+            },
+          }}
+        />
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
