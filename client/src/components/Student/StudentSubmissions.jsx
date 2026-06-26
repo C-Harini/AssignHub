@@ -1,24 +1,42 @@
-export default function StudentSubmissions({ mySubmissions, assignments }) {
-  if (mySubmissions.length === 0)
-    return <div className="empty">You have not submitted any assignments yet.</div>;
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import Spinner from '../Common/Spinner.jsx';
+import EmptyState from '../Common/EmptyState.jsx';
+import { getMySubmissions, downloadSubmissionUrl } from '../../services/api.js';
+import { formatDate } from '../Common/AssignmentCard.jsx';
+
+export default function StudentSubmissions() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getMySubmissions()
+      .then(setItems)
+      .catch((e) => toast.error(e.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <Spinner />;
+  if (items.length === 0) return <EmptyState title="No submissions yet" hint="Submit an assignment to see it here." />;
 
   return (
     <div className="card">
-      {mySubmissions.map(s => {
-        const a = assignments.find(x => x.id === s.assignmentId);
-        return (
-          <div key={s.id} className="list-item">
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 500 }}>{a ? a.title : 'Assignment'}</div>
-              <div className="meta">Submitted on {s.submittedAt}</div>
-              <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2, fontStyle: 'italic' }}>
-                "{s.content.slice(0, 60)}{s.content.length > 60 ? '…' : ''}"
-              </div>
-            </div>
-            <span className="badge badge-submitted">Done</span>
+      <div className="section-title">Submission history</div>
+      {items.map((s) => (
+        <div key={s.id} className="list-item">
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 500 }}>{s.assignmentTitle}</div>
+            <div className="meta">{formatDate(s.submittedAt)} · {s.fileName}</div>
+            {s.remarks && <div className="meta" style={{ fontStyle: 'italic', marginTop: 2 }}>"{s.remarks}"</div>}
           </div>
-        );
-      })}
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <span className={`badge ${s.late ? 'badge-missed' : 'badge-submitted'}`}>{s.late ? 'Late' : 'On time'}</span>
+            <a href={downloadSubmissionUrl(s.id)} target="_blank" rel="noreferrer">
+              <button style={{ fontSize: 12 }}>Download</button>
+            </a>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

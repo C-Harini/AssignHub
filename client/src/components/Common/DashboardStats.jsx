@@ -1,11 +1,10 @@
+import StatCard from './StatCard.jsx';
+
 export default function DashboardStats({ items }) {
   return (
-    <div className="stat-grid">
+    <div className="stats-grid">
       {items.map((it) => (
-        <div key={it.label} className="stat-card">
-          <div className="stat-label">{it.label}</div>
-          <div className="stat-value">{it.value}</div>
-        </div>
+        <StatCard key={it.label} label={it.label} value={it.value} accent={it.accent} sublabel={it.sublabel} />
       ))}
     </div>
   );

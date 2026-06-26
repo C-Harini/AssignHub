@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 
@@ -6,25 +7,32 @@ const connectDB = require('./config/db');
 const seedAdmin = require('./utils/seedAdmin');
 const authRoutes = require('./routes/authRoutes');
 const studentRoutes = require('./routes/studentRoutes');
+const assignmentRoutes = require('./routes/assignmentRoutes');
+const submissionRoutes = require('./routes/submissionRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 const app = express();
 
 app.use(cors({ origin: process.env.CLIENT_ORIGIN || '*', credentials: true }));
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/assignments', assignmentRoutes);
+app.use('/api/submissions', submissionRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // 404
-app.use((req, res) => res.status(404).json({ message: 'Route not found' }));
+app.use((_req, res) => res.status(404).json({ message: 'Route not found' }));
 
-// Error handler
+// Centralised error handler — also catches Multer errors
 // eslint-disable-next-line no-unused-vars
-app.use((err, req, res, next) => {
+app.use((err, _req, res, _next) => {
   console.error('[error]', err);
-  res.status(err.status || 500).json({ message: err.message || 'Internal server error' });
+  const status = err.status || (err.code === 'LIMIT_FILE_SIZE' ? 413 : 500);
+  res.status(status).json({ message: err.message || 'Internal server error' });
 });
 
 const PORT = process.env.PORT || 5000;

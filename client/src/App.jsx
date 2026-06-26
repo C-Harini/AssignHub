@@ -3,10 +3,12 @@ import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import StudentDashboard from './pages/StudentDashboard.jsx';
+import Profile from './pages/Profile.jsx';
+import NotFound from './pages/NotFound.jsx';
+import Unauthorized from './pages/Unauthorized.jsx';
 import ProtectedRoute from './components/Common/ProtectedRoute.jsx';
 import { useAuth } from './contexts/AuthContext.jsx';
 
-// Root route — sends user to the right dashboard or to login.
 function Root() {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
@@ -19,6 +21,7 @@ export default function App() {
       <Route path="/" element={<Root />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/unauthorized" element={<Unauthorized />} />
       <Route
         path="/admin/dashboard"
         element={
@@ -35,7 +38,15 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

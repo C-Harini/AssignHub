@@ -1,70 +1,59 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext.jsx';
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [role, setRole] = useState('student');
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ email: '', password: '', role: 'student' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  const handleSubmit = async (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    setError('');
+    if (!form.email || !form.password) return setError('Email and password are required.');
+    setError(''); setLoading(true);
     try {
-      const u = await login({ ...form, role });
+      const u = await login(form);
+      toast.success(`Welcome back, ${u.name}`);
       navigate(u.role === 'admin' ? '/admin/dashboard' : '/student/dashboard', { replace: true });
     } catch (err) {
-      setError(err.message || 'Login failed.');
-    }
+      setError(err.message);
+    } finally { setLoading(false); }
   };
 
   return (
-    <div className="auth-wrap">
-      <form className="card auth-card" onSubmit={handleSubmit}>
-        <div className="auth-header">
-          <div className="logo">📋</div>
-          <div className="title">AssignHub</div>
-          <div className="sub">Assignment management platform</div>
+    <div className="page" style={{ maxWidth: 420, marginTop: '4rem' }}>
+      <div className="card">
+        <div className="section-title">Sign in to AssignHub</div>
+        <form onSubmit={submit}>
+          {error && <div className="alert alert-error">{error}</div>}
+          <div className="form-group">
+            <label className="form-label">I am a</label>
+            <select value={form.role} onChange={(e) => set('role', e.target.value)}>
+              <option value="student">Student</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Email</label>
+            <input type="email" value={form.email} onChange={(e) => set('email', e.target.value)} autoComplete="email" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Password</label>
+            <input type="password" value={form.password} onChange={(e) => set('password', e.target.value)} autoComplete="current-password" />
+          </div>
+          <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%' }}>
+            {loading ? 'Signing in…' : 'Sign in'}
+          </button>
+        </form>
+        <div className="meta" style={{ marginTop: 12, textAlign: 'center' }}>
+          New student? <Link to="/register">Create an account</Link>
         </div>
-
-        <div className="role-toggle">
-          <button type="button" className={role === 'student' ? 'active' : 'idle'} onClick={() => setRole('student')}>Student</button>
-          <button type="button" className={role === 'admin' ? 'active' : 'idle'} onClick={() => setRole('admin')}>Admin</button>
-        </div>
-
-        {error && <div className="alert alert-error">{error}</div>}
-
-        <div className="form-group">
-          <label className="form-label">Email</label>
-          <input
-            type="email"
-            placeholder={role === 'admin' ? 'admin@assignhub.com' : 'student@mail.com'}
-            value={form.email}
-            onChange={e => set('email', e.target.value)}
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Password</label>
-          <input
-            type="password"
-            placeholder={role === 'admin' ? 'admin123' : 'pass123'}
-            value={form.password}
-            onChange={e => set('password', e.target.value)}
-          />
-        </div>
-
-        <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: 4 }}>Sign in</button>
-
-        {role === 'student' && (
-          <p style={{ textAlign: 'center', fontSize: 13, marginTop: 16, color: 'var(--color-text-secondary)' }}>
-            No account? <Link to="/register" className="link">Register here</Link>
-          </p>
-        )}
-      </form>
+      </div>
     </div>
   );
 }
